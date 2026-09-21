@@ -1,0 +1,28 @@
+# .NET
+**/bin/
+**/obj/
+.vs/
+TestResults/
+*.user
+*.suo
+
+# Unity generated files; keep Assets, .meta, Packages and ProjectSettings
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Ll]ogs/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/UserSettings/
+
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/secrets.json
+*.pfx
+*.p12
+
+# Local database validation artifacts
+.db-validation-*/
