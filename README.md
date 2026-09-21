@@ -2,7 +2,7 @@
 
 课程项目，架构为 Unity → HTTP/JSON → ASP.NET Core → EF Core → MySQL。
 
-已实现数据库、EF Core、注册登录、JWT、User Secrets、好友系统，以及好友私聊发送和历史查询；31 项隔离 MySQL 集成测试通过。尚未实现动态或 Unity 业务。
+已实现数据库、EF Core、注册登录、JWT、User Secrets、好友、私聊消息，以及动态发布/列表/删除、评论、点赞和取消点赞；41 项隔离 MySQL 集成测试通过。尚未实现 Unity 业务。
 
 第三阶段启动、JWT 本机配置与接口测试见 [注册登录说明](docs/auth-api.md)。
 
@@ -32,3 +32,5 @@
 数据库密码与 JWT 密钥不得写入源码。后续使用本机 User Secrets 或环境变量。
 
 本阶段 SQL 是数据库结构基线。进入 EF Core 阶段时，必须明确采用空库迁移或对已有库建立迁移基线，不能在手动建表后的库上直接重复运行建表迁移；此后结构变更统一由 EF Core Migrations 管理。
+
+第六阶段动态接口与测试步骤见 [动态接口说明](docs/posts-api.md)。

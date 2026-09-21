@@ -34,6 +34,7 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FriendService>();
 builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<PostService>();
 builder.Services.AddSingleton<UtcConnectionInterceptor>();
 builder.Services.AddDbContext<SocialDbContext>((services, options) =>
 {

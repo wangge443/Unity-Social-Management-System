@@ -77,3 +77,5 @@ dotnet run --project SocialSystem.Api --launch-profile http --no-build
 ## 当前验证状态
 
 第二阶段本机 API 与 social_system 连接、7 张表映射读取均已由用户验证通过。第三阶段 restore、build 成功，0 警告、0 错误，18 项隔离 MySQL 集成测试通过。第一阶段 SQL 文件和现有数据库结构未修改。第三阶段本机人工验收步骤见注册登录说明。
+
+第六阶段已新增动态模块，所有接口要求 JWT；发布、列表、作者删除、评论及点赞操作见 [动态接口说明](../docs/posts-api.md)。当前 build 0 警告、0 错误，41 项集成测试通过。
