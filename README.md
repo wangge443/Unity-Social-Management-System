@@ -2,7 +2,7 @@
 
 课程项目，架构为 Unity → HTTP/JSON → ASP.NET Core → EF Core → MySQL。
 
-已实现数据库、EF Core、注册登录、JWT、User Secrets、好友、私聊消息，以及动态发布/列表/删除、评论、点赞和取消点赞；41 项隔离 MySQL 集成测试通过。尚未实现 Unity 业务。
+已实现数据库、EF Core、注册登录、JWT、User Secrets、好友、私聊消息，以及动态发布/列表/删除、评论、点赞和取消点赞；41 项隔离 MySQL 集成测试通过。Unity 连接基础已完成，包括统一网络请求、JWT 会话管理、注册登录调用和 LoginScene；第八阶段已实现用户主页、好友列表与申请、聊天、动态发布/评论/点赞，并通过逐模块构建及双账号端到端测试。
 
 第三阶段启动、JWT 本机配置与接口测试见 [注册登录说明](docs/auth-api.md)。
 
@@ -14,8 +14,8 @@
 
 | 目录 | 用途 |
 | --- | --- |
-| `backend/` | 后续 ASP.NET Core Web API 与后端测试 |
-| `client/` | 后续 Unity 工程 |
+| `backend/` | ASP.NET Core Web API 与后端测试 |
+| `client/` | Unity 工程、运行说明与连接测试 |
 | `database/` | 初始化 SQL、验证 SQL 和执行说明 |
 | `docs/` | E-R 图、数据字典与设计决策 |
 
@@ -34,3 +34,7 @@
 本阶段 SQL 是数据库结构基线。进入 EF Core 阶段时，必须明确采用空库迁移或对已有库建立迁移基线，不能在手动建表后的库上直接重复运行建表迁移；此后结构变更统一由 EF Core Migrations 管理。
 
 第六阶段动态接口与测试步骤见 [动态接口说明](docs/posts-api.md)。
+
+第七阶段 Unity 运行步骤见 [客户端说明](client/README.md)，构建和连接测试结果见 [验证记录](docs/unity-client-validation.md)。
+
+第八阶段逐模块人工验收与自动测试结果见 [社交客户端验证记录](docs/unity-social-validation.md)。

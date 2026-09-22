@@ -1,0 +1,225 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2800" height="1860" viewBox="0 0 2800 1860">
+  <title>social_system 数据库 ER 图</title>
+  <desc>7 张实际 MySQL 表，11 条外键。箭头从子表指向父表，每条外键关系为父表一对子表零到多。</desc>
+  <rect x="0" y="0" width="2800" height="1860" fill="#f4f7fb" stroke="#f4f7fb" />
+  <text x="80" y="98" font-family="Microsoft YaHei, sans-serif" font-size="52" font-weight="700" fill="#15344c">社交管理系统 · 数据库 ER 图</text>
+  <text x="82" y="150" font-family="Microsoft YaHei, sans-serif" font-size="27" font-weight="400" fill="#597083">social_system  /  MySQL 实表元数据核对  /  7 张表 · 11 条外键 · 2026-09-22</text>
+  <polyline points="760,368 800,368 800,696 1010,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1010,696 998,690 998,702" fill="#477b9b" />
+  <text x="764" y="361" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <text x="981" y="690" font-family="Microsoft YaHei, sans-serif" font-size="20" font-weight="400" fill="#243c51">1</text>
+  <polyline points="760,410 850,410 850,696 1010,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1010,696 998,690 998,702" fill="#477b9b" />
+  <text x="764" y="403" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <polyline points="760,938 890,938 890,696 1010,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1010,696 998,690 998,702" fill="#477b9b" />
+  <text x="764" y="931" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <polyline points="760,980 930,980 930,696 1010,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1010,696 998,690 998,702" fill="#477b9b" />
+  <text x="764" y="973" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <polyline points="760,1378 850,1378 850,696 1010,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1010,696 998,690 998,702" fill="#477b9b" />
+  <text x="764" y="1371" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <polyline points="760,1420 800,1420 800,696 1010,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1010,696 998,690 998,702" fill="#477b9b" />
+  <text x="764" y="1413" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <polyline points="1930,368 1810,368 1810,696 1690,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1690,696 1702,690 1702,702" fill="#477b9b" />
+  <text x="1868" y="361" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <text x="1700" y="690" font-family="Microsoft YaHei, sans-serif" font-size="20" font-weight="400" fill="#243c51">1</text>
+  <polyline points="1930,980 1770,980 1770,696 1690,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1690,696 1702,690 1702,702" fill="#477b9b" />
+  <text x="1868" y="973" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <polyline points="1930,1378 1810,1378 1810,696 1690,696" fill="none" stroke="#477b9b" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="1690,696 1702,690 1702,702" fill="#477b9b" />
+  <text x="1868" y="1371" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#243c51">0..N</text>
+  <polyline points="2610,938 2680,938 2680,326 2610,326" fill="none" stroke="#aa7043" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="2610,326 2622,320 2622,332" fill="#aa7043" />
+  <text x="2618" y="931" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#996037">0..N</text>
+  <polyline points="2610,1336 2750,1336 2750,326 2610,326" fill="none" stroke="#aa7043" stroke-width="3" stroke-linejoin="round" />
+  <polygon points="2610,326 2622,320 2622,332" fill="#aa7043" />
+  <text x="2618" y="1329" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#996037">0..N</text>
+  <text x="2618" y="320" font-family="Microsoft YaHei, sans-serif" font-size="20" font-weight="400" fill="#996037">1</text>
+  <rect x="1010" y="600" width="680" height="484" fill="#ffffff" stroke="#d6e1eb" />
+  <rect x="1010" y="600" width="680" height="65" fill="#173d59" stroke="#173d59" />
+  <text x="1032" y="643" font-family="Microsoft YaHei, sans-serif" font-size="29" font-weight="700" fill="#ffffff">users  ·  用户</text>
+  <rect x="1011" y="676" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1028" y="699" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK</text>
+  <text x="1117" y="701" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">id</text>
+  <text x="1446" y="701" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="1028" y="741" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">UK</text>
+  <text x="1117" y="743" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">username</text>
+  <text x="1446" y="743" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(32)</text>
+  <rect x="1011" y="760" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1028" y="783" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="1117" y="785" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">password_hash</text>
+  <text x="1446" y="785" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(512)</text>
+  <text x="1028" y="825" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="1117" y="827" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">nickname</text>
+  <text x="1446" y="827" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(32)</text>
+  <rect x="1011" y="844" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1028" y="867" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="1117" y="869" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">bio</text>
+  <text x="1446" y="869" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(200)</text>
+  <text x="1028" y="909" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="1117" y="911" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">avatar_key</text>
+  <text x="1446" y="911" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(64)</text>
+  <rect x="1011" y="928" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1028" y="951" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="1117" y="953" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">created_at</text>
+  <text x="1446" y="953" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="1028" y="993" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="1117" y="995" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">updated_at</text>
+  <text x="1446" y="995" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="1028" y="1048" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#526b7e">PK(id) · username 唯一</text>
+  <rect x="80" y="230" width="680" height="484" fill="#ffffff" stroke="#d6e1eb" />
+  <rect x="80" y="230" width="680" height="65" fill="#265c7c" stroke="#265c7c" />
+  <text x="102" y="273" font-family="Microsoft YaHei, sans-serif" font-size="29" font-weight="700" fill="#ffffff">friend_requests  ·  好友申请</text>
+  <rect x="81" y="306" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="329" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK</text>
+  <text x="187" y="331" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">id</text>
+  <text x="516" y="331" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="371" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="187" y="373" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">sender_id</text>
+  <text x="516" y="373" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <rect x="81" y="390" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="413" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="187" y="415" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">receiver_id</text>
+  <text x="516" y="415" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="455" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="187" y="457" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">status</text>
+  <text x="516" y="457" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">TINYINT</text>
+  <rect x="81" y="474" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="497" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="187" y="499" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">created_at</text>
+  <text x="516" y="499" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="98" y="539" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">NULL</text>
+  <text x="187" y="541" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">handled_at</text>
+  <text x="516" y="541" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <rect x="81" y="558" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="581" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">GEN</text>
+  <text x="187" y="583" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">pending_low_id</text>
+  <text x="516" y="583" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="623" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">GEN</text>
+  <text x="187" y="625" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">pending_high_id</text>
+  <text x="516" y="625" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="678" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#526b7e">联合唯一：pending_low_id, pending_high_id</text>
+  <rect x="80" y="800" width="680" height="316" fill="#ffffff" stroke="#d6e1eb" />
+  <rect x="80" y="800" width="680" height="65" fill="#265c7c" stroke="#265c7c" />
+  <text x="102" y="843" font-family="Microsoft YaHei, sans-serif" font-size="29" font-weight="700" fill="#ffffff">friends  ·  好友关系</text>
+  <rect x="81" y="876" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="899" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK</text>
+  <text x="187" y="901" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">id</text>
+  <text x="516" y="901" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="941" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="187" y="943" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">user_low_id</text>
+  <text x="516" y="943" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <rect x="81" y="960" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="983" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="187" y="985" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">user_high_id</text>
+  <text x="516" y="985" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="1025" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="187" y="1027" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">created_at</text>
+  <text x="516" y="1027" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="98" y="1080" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#526b7e">联合唯一：user_low_id, user_high_id</text>
+  <rect x="80" y="1240" width="680" height="358" fill="#ffffff" stroke="#d6e1eb" />
+  <rect x="80" y="1240" width="680" height="65" fill="#265c7c" stroke="#265c7c" />
+  <text x="102" y="1283" font-family="Microsoft YaHei, sans-serif" font-size="29" font-weight="700" fill="#ffffff">messages  ·  私聊消息</text>
+  <rect x="81" y="1316" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="1339" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK</text>
+  <text x="187" y="1341" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">id</text>
+  <text x="516" y="1341" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="1381" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="187" y="1383" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">sender_id</text>
+  <text x="516" y="1383" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <rect x="81" y="1400" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="1423" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="187" y="1425" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">receiver_id</text>
+  <text x="516" y="1425" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="98" y="1465" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="187" y="1467" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">content</text>
+  <text x="516" y="1467" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(2000)</text>
+  <rect x="81" y="1484" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="98" y="1507" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="187" y="1509" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">created_at</text>
+  <text x="516" y="1509" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="98" y="1562" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#526b7e">好友删除不级联删除消息</text>
+  <rect x="1930" y="230" width="680" height="316" fill="#ffffff" stroke="#d6e1eb" />
+  <rect x="1930" y="230" width="680" height="65" fill="#265c7c" stroke="#265c7c" />
+  <text x="1952" y="273" font-family="Microsoft YaHei, sans-serif" font-size="29" font-weight="700" fill="#ffffff">posts  ·  动态</text>
+  <rect x="1931" y="306" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1948" y="329" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK</text>
+  <text x="2037" y="331" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">id</text>
+  <text x="2366" y="331" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="1948" y="371" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="2037" y="373" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">user_id</text>
+  <text x="2366" y="373" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <rect x="1931" y="390" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1948" y="413" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="2037" y="415" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">content</text>
+  <text x="2366" y="415" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(2000)</text>
+  <text x="1948" y="455" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="2037" y="457" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">created_at</text>
+  <text x="2366" y="457" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="1948" y="510" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#526b7e">作者：user_id → users.id</text>
+  <rect x="1930" y="800" width="680" height="358" fill="#ffffff" stroke="#d6e1eb" />
+  <rect x="1930" y="800" width="680" height="65" fill="#265c7c" stroke="#265c7c" />
+  <text x="1952" y="843" font-family="Microsoft YaHei, sans-serif" font-size="29" font-weight="700" fill="#ffffff">comments  ·  评论</text>
+  <rect x="1931" y="876" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1948" y="899" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK</text>
+  <text x="2037" y="901" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">id</text>
+  <text x="2366" y="901" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="1948" y="941" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="2037" y="943" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">post_id</text>
+  <text x="2366" y="943" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <rect x="1931" y="960" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1948" y="983" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">FK</text>
+  <text x="2037" y="985" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">user_id</text>
+  <text x="2366" y="985" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="1948" y="1025" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="2037" y="1027" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">content</text>
+  <text x="2366" y="1027" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">VARCHAR(500)</text>
+  <rect x="1931" y="1044" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1948" y="1067" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="2037" y="1069" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">created_at</text>
+  <text x="2366" y="1069" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="1948" y="1122" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#526b7e">删除动态 → 级联删除评论</text>
+  <rect x="1930" y="1240" width="680" height="274" fill="#ffffff" stroke="#d6e1eb" />
+  <rect x="1930" y="1240" width="680" height="65" fill="#265c7c" stroke="#265c7c" />
+  <text x="1952" y="1283" font-family="Microsoft YaHei, sans-serif" font-size="29" font-weight="700" fill="#ffffff">likes  ·  点赞</text>
+  <rect x="1931" y="1316" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1948" y="1339" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK/FK</text>
+  <text x="2037" y="1341" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">post_id</text>
+  <text x="2366" y="1341" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <text x="1948" y="1381" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a36919">PK/FK</text>
+  <text x="2037" y="1383" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#243c51">user_id</text>
+  <text x="2366" y="1383" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">BIGINT</text>
+  <rect x="1931" y="1400" width="678" height="42" fill="#f2f6fa" stroke="#f2f6fa" />
+  <text x="1948" y="1423" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#247486">
+  </text>
+  <text x="2037" y="1425" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#243c51">created_at</text>
+  <text x="2366" y="1425" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#536c80">DATETIME(6)</text>
+  <text x="1948" y="1478" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#526b7e">联合主键：post_id, user_id</text>
+  <text x="1030" y="1142" font-family="Microsoft YaHei, sans-serif" font-size="27" font-weight="700" fill="#265c7c">箭头：子表外键 → 父表主键</text>
+  <text x="1030" y="1185" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="400" fill="#243c51">每条外键：父表 1 ↔ 子表 0..N</text>
+  <text x="1030" y="1228" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#597083">所有指向 users 的外键引用 users.id</text>
+  <rect x="80" y="1660" width="2640" height="148" fill="#e6eef5" stroke="#e6eef5" />
+  <text x="104" y="1707" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="700" fill="#243c51">PK 主键   FK 外键   UK 单列唯一   GEN 可空虚拟生成列   NULL 可空字段</text>
+  <text x="104" y="1751" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="400" fill="#243c51">多对多：users ↔ users 经 friends；users ↔ posts 经 likes（点赞）或 comments（可重复评论）。</text>
+  <text x="104" y="1790" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#597083">没有一对一关系。likes 的两个 PK/FK 字段共同组成主键；生成列的联合唯一不代表各列分别唯一。</text>
+</svg>

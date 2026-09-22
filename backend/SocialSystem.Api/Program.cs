@@ -1,3 +1,5 @@
+using Microsoft.OpenApi;
+using SocialSystem.Api.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using SocialSystem.Api.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,6 +11,23 @@ using SocialSystem.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "SocialSystem API", Version = "v1" });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Paste the accessToken only. The Bearer prefix is added automatically."
+    });
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+    options.OperationFilter<SwaggerAuthorizationFilter>();
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddOptions<JwtSettings>().BindConfiguration("Jwt")
@@ -47,6 +66,11 @@ builder.Services.AddDbContext<SocialDbContext>((services, options) =>
 var app = builder.Build();
 // Never expose exception details or connection strings through HTTP.
 app.UseExceptionHandler();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "SocialSystem API v1"));
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

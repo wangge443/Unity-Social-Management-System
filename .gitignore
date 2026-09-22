@@ -26,3 +26,11 @@ TestResults/
 
 # Local database validation artifacts
 .db-validation-*/
+
+# Editor / OS files and diagnostic output
+**/.idea/
+*.log
+*.tmp
+*.DotSettings.user
+.DS_Store
+Thumbs.db
