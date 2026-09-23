@@ -40,6 +40,31 @@ public sealed class FriendService(SocialDbContext db)
         return db.Friends.Where(x => x.UserLowId == low && x.UserHighId == high);
     }
 
+
+    public async Task<UserSearchListResponse> SearchUsersAsync(long userId, string keyword, int page, int pageSize, CancellationToken ct)
+    {
+        if (!await db.Users.AnyAsync(x => x.Id == userId, ct))
+            throw Error(401, "user_not_found", "当前用户不存在");
+        keyword = keyword.Trim();
+        var query = db.Users.AsNoTracking().Where(x => x.Id != userId);
+        // usernames use ASCII; non-ASCII keywords can only match nicknames.
+        query = keyword.All(c => c <= 127)
+            ? query.Where(x => x.Username.Contains(keyword) || x.Nickname.Contains(keyword))
+            : query.Where(x => x.Nickname.Contains(keyword));
+        var total = await query.CountAsync(ct);
+        var items = await query.OrderBy(x => x.Username).ThenBy(x => x.Id)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new UserSearchResponse(x.Id, x.Username, x.Nickname,
+                db.Friends.Any(f => (f.UserLowId == userId && f.UserHighId == x.Id) ||
+                    (f.UserHighId == userId && f.UserLowId == x.Id)) ? "friends" :
+                db.FriendRequests.Any(r => r.SenderId == userId && r.ReceiverId == x.Id &&
+                    r.Status == FriendRequestStatus.Pending) ? "outgoing" :
+                db.FriendRequests.Any(r => r.ReceiverId == userId && r.SenderId == x.Id &&
+                    r.Status == FriendRequestStatus.Pending) ? "incoming" : "none"))
+            .ToListAsync(ct);
+        return new(items, page, pageSize, total);
+    }
+
     public async Task<FriendRequestResponse> SendAsync(long userId, long receiverId, CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
@@ -92,6 +117,47 @@ public sealed class FriendService(SocialDbContext db)
         await transaction.CommitAsync(ct);
         return new(request.Id, request.SenderId, request.ReceiverId, "accepted");
     }
+
+    public async Task<IncomingFriendRequestListResponse> IncomingAsync(long userId, int page, int pageSize, CancellationToken ct)
+    {
+        if (!await db.Users.AnyAsync(x => x.Id == userId, ct))
+            throw Error(401, "user_not_found", "当前用户不存在");
+        var query = db.FriendRequests.AsNoTracking()
+            .Where(x => x.ReceiverId == userId && x.Status == FriendRequestStatus.Pending);
+        var total = await query.CountAsync(ct);
+        var items = await query.OrderByDescending(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new IncomingFriendRequestResponse(x.Id, x.SenderId,
+                x.Sender.Username, x.Sender.Nickname, DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc)))
+            .ToListAsync(ct);
+        return new(items, page, pageSize, total);
+    }
+
+    public async Task<FriendRequestResponse> RejectAsync(long userId, long requestId, CancellationToken ct)
+    {
+        var snapshot = await db.FriendRequests.AsNoTracking().SingleOrDefaultAsync(x => x.Id == requestId, ct)
+            ?? throw Error(404, "request_not_found", "好友申请不存在");
+        if (snapshot.ReceiverId != userId)
+            throw Error(403, "not_request_receiver", "只有接收者可以拒绝申请");
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+        // Use the same ordered user locks as acceptance; concurrent accept/reject has one winner.
+        await LockPairAsync(userId, snapshot.SenderId, ct);
+        var request = await db.FriendRequests.SingleOrDefaultAsync(x => x.Id == requestId, ct)
+            ?? throw Error(404, "request_not_found", "好友申请不存在");
+        if (request.ReceiverId != userId)
+            throw Error(403, "not_request_receiver", "只有接收者可以拒绝申请");
+        if (request.Status != FriendRequestStatus.Pending)
+            throw Error(409, "request_handled", "好友申请已处理");
+        request.Status = FriendRequestStatus.Rejected;
+        await using var command = db.Database.GetDbConnection().CreateCommand();
+        command.Transaction = transaction.GetDbTransaction();
+        command.CommandText = "SELECT UTC_TIMESTAMP(6)";
+        var now = Convert.ToDateTime(await command.ExecuteScalarAsync(ct));
+        request.HandledAt = now < request.CreatedAt ? request.CreatedAt : now;
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return new(request.Id, request.SenderId, request.ReceiverId, "rejected");
+    }
+
 
     public async Task DeleteAsync(long userId, long friendId, CancellationToken ct)
     {

@@ -45,6 +45,7 @@ public sealed class PostsApiTests(ApiFactory factory) : IClassFixture<ApiFactory
     [InlineData("GET", "/api/posts")]
     [InlineData("DELETE", "/api/posts/1")]
     [InlineData("POST", "/api/posts/1/comments")]
+    [InlineData("GET", "/api/posts/1/comments")]
     [InlineData("POST", "/api/posts/1/like")]
     [InlineData("DELETE", "/api/posts/1/like")]
     public async Task All_endpoints_require_JWT(string method, string path)
@@ -185,6 +186,88 @@ public sealed class PostsApiTests(ApiFactory factory) : IClassFixture<ApiFactory
             Assert.True(page1.Total >= 2);
             using var raw = await client.GetAsync("/api/posts");
             Assert.DoesNotContain("password", await raw.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public async Task Comments_are_visible_across_users_with_safe_authors_and_paging()
+    {
+        var (a, _) = await Account(); var (b, bId) = await Account();
+        using (a) using (b)
+        {
+            var post = await Create(a);
+            var other = await Create(a);
+            var empty = (await b.GetFromJsonAsync<CommentListResponse>($"/api/posts/{post.Id}/comments"))!;
+            Assert.Empty(empty.Items); Assert.Equal(0, empty.Total);
+            var saved = new List<CommentResponse>();
+            foreach (var content in new[] { "第一条中文评论", "<b>纯文本</b>\n第二行", new string('长', 500) })
+            {
+                using var result = await b.PostAsJsonAsync($"/api/posts/{post.Id}/comments", new { content });
+                Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+                saved.Add((await result.Content.ReadFromJsonAsync<CommentResponse>())!);
+            }
+            using var unrelated = await a.PostAsJsonAsync($"/api/posts/{other.Id}/comments", new { content = "other post" });
+            Assert.Equal(HttpStatusCode.Created, unrelated.StatusCode);
+            // Equal timestamps still have deterministic ID ordering.
+            await using var connection = new MySqlConnection(factory.ConnectionString);
+            await connection.OpenAsync();
+            await using var command = connection.CreateCommand();
+            command.CommandText = "UPDATE comments SET created_at='2026-01-01 00:00:00' WHERE post_id=@id";
+            command.Parameters.AddWithValue("@id", post.Id);
+            Assert.Equal(3, await command.ExecuteNonQueryAsync());
+            var first = (await a.GetFromJsonAsync<CommentListResponse>($"/api/posts/{post.Id}/comments?pageSize=2"))!;
+            var second = (await a.GetFromJsonAsync<CommentListResponse>($"/api/posts/{post.Id}/comments?page=2&pageSize=2"))!;
+            Assert.Equal(3, first.Total);
+            Assert.Equal(new[] { saved[2].Id, saved[1].Id }, first.Items.Select(x => x.Id));
+            Assert.Equal(saved[0].Id, Assert.Single(second.Items).Id);
+            var identity = (await b.GetFromJsonAsync<UserResponse>("/api/auth/me"))!;
+            Assert.All(first.Items, x =>
+            {
+                Assert.Equal(post.Id, x.PostId); Assert.Equal(bId, x.Author.Id);
+                Assert.Equal(identity.Username, x.Author.Username); Assert.Equal(identity.Nickname, x.Author.Nickname);
+                Assert.Equal(DateTimeKind.Utc, x.CreatedAt.Kind);
+            });
+            var bView = (await b.GetFromJsonAsync<CommentListResponse>($"/api/posts/{post.Id}/comments"))!;
+            Assert.Equal(saved.AsEnumerable().Reverse().Select(x => x.Id), bView.Items.Select(x => x.Id));
+            Assert.Equal(3, (await Find(a, post.Id)).CommentCount);
+            Assert.Empty((await a.GetFromJsonAsync<CommentListResponse>($"/api/posts/{post.Id}/comments?page=3&pageSize=2"))!.Items);
+            using var raw = await a.GetAsync($"/api/posts/{post.Id}/comments");
+            Assert.DoesNotContain("password", await raw.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public async Task Comment_queries_validate_ids_and_pagination()
+    {
+        var (client, _) = await Account();
+        using (client)
+        {
+            var post = await Create(client);
+            foreach (var query in new[] { "?page=0", "?page=1000001", "?pageSize=0", "?pageSize=101" })
+            {
+                using var response = await client.GetAsync($"/api/posts/{post.Id}/comments" + query);
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+            using var badId = await client.GetAsync("/api/posts/0/comments");
+            using var missing = await client.GetAsync($"/api/posts/{long.MaxValue}/comments");
+            Assert.Equal(HttpStatusCode.BadRequest, badId.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task Deleted_posts_do_not_expose_stale_comments()
+    {
+        var (a, _) = await Account(); var (b, _) = await Account();
+        using (a) using (b)
+        {
+            var post = await Create(a);
+            using var comment = await b.PostAsJsonAsync($"/api/posts/{post.Id}/comments", new { content = "before deletion" });
+            Assert.Equal(HttpStatusCode.Created, comment.StatusCode);
+            using var deleted = await a.DeleteAsync($"/api/posts/{post.Id}");
+            Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+            using var queried = await b.GetAsync($"/api/posts/{post.Id}/comments");
+            Assert.Equal(HttpStatusCode.NotFound, queried.StatusCode);
         }
     }
 }

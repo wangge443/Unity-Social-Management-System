@@ -13,7 +13,14 @@ public static class ClientUiCapture
         Capture(canvas, name, 960, 540);
         Capture(canvas, name, 1280, 720);
     }
-    private static void Capture(Canvas canvas, string name, int width, int height)
+    public static void SavePosts(Canvas canvas, string name, System.Action validate)
+    {
+        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null) return;
+        Capture(canvas, name, 960, 540, validate);
+        Capture(canvas, name, 1280, 720, validate);
+        Capture(canvas, name, 2560, 1440, validate);
+    }
+    private static void Capture(Canvas canvas, string name, int width, int height, System.Action validate = null)
     {
         var scrolls = canvas.GetComponentsInChildren<ScrollRect>();
         var positions = new Vector2[scrolls.Length];
@@ -39,6 +46,7 @@ public static class ClientUiCapture
             Canvas.ForceUpdateCanvases();
             for (var i = 0; i < scrolls.Length; i++) scrolls[i].normalizedPosition = positions[i];
             camera.Render();
+            validate?.Invoke();
             RenderTexture.active = target;
             pixels = new Texture2D(width, height, TextureFormat.RGB24, false);
             pixels.ReadPixels(new Rect(0, 0, width, height), 0, 0);

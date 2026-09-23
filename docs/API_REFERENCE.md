@@ -1,6 +1,6 @@
 # 后端 API 接口文档
 
-生成日期：2026-09-22。依据当前 Controller 路由和认证特性自动扫描，并读取 DTO、Service、JWT 配置及异常处理代码补充参数、响应与权限说明。共 **5 个 Controller、16 个接口，其中 13 个要求 JWT**。
+生成日期：2026-09-22；好友搜索、申请及评论查询接口更新：2026-09-23。依据当前 Controller 路由和认证特性自动扫描，并读取 DTO、Service、JWT 配置及异常处理代码补充参数、响应与权限说明。共 **5 个 Controller、20 个接口，其中 17 个要求 JWT**。
 
 本文仅整理当前实现，不修改业务代码，不新增接口，也不代表重新执行了接口测试。示例中的账号、ID、正文及时间均为格式示例，不是实库数据；令牌使用占位符。
 
@@ -37,8 +37,11 @@
 | POST | /api/auth/register | 注册 | 否 | 201 UserResponse |
 | POST | /api/auth/login | 登录 | 否 | 200 LoginResponse |
 | GET | /api/auth/me | 当前身份 | 是 | 200 UserResponse |
+| GET | /api/friends/search-users | 搜索可添加用户及关系状态 | 是 | 200 UserSearchListResponse |
 | POST | /api/friends/request | 发送好友申请 | 是 | 201 FriendRequestResponse |
 | POST | /api/friends/accept/{requestId} | 接受好友申请 | 是 | 200 FriendRequestResponse |
+| GET | /api/friends/requests | 收到的待处理申请分页列表 | 是 | 200 IncomingFriendRequestListResponse |
+| POST | /api/friends/reject/{requestId} | 拒绝好友申请 | 是 | 200 FriendRequestResponse |
 | GET | /api/friends | 好友分页列表 | 是 | 200 FriendListResponse |
 | DELETE | /api/friends/{friendId} | 删除好友 | 是 | 204 |
 | POST | /api/messages/send | 发送私聊 | 是 | 201 MessageResponse |
@@ -46,6 +49,7 @@
 | POST | /api/posts | 发布动态 | 是 | 201 PostResponse |
 | GET | /api/posts | 动态分页列表 | 是 | 200 PostListResponse |
 | DELETE | /api/posts/{id} | 删除本人动态 | 是 | 204 |
+| GET | /api/posts/{id}/comments | 分页查询评论 | 是 | 200 CommentListResponse |
 | POST | /api/posts/{id}/comments | 提交评论 | 是 | 201 CommentResponse |
 | POST | /api/posts/{id}/like | 点赞 | 是 | 204 |
 | DELETE | /api/posts/{id}/like | 取消点赞 | 是 | 204 |
@@ -116,6 +120,26 @@
 ## 4. FriendsController
 
 来源：[Controller](../backend/SocialSystem.Api/Controllers/FriendsController.cs)、[DTO](../backend/SocialSystem.Api/DTOs/Friends/FriendDtos.cs)、[FriendService](../backend/SocialSystem.Api/Services/FriendService.cs)。本控制器全部接口要求 JWT。
+
+### GET /api/friends/search-users
+
+按用户名或昵称搜索；**JWT：需要**。复用好友服务，排除当前登录用户，不显示密码、哈希等私密字段。
+
+| 参数 | 位置 | 类型 | 必填 | 默认值 / 范围 |
+| --- | --- | --- | --- | --- |
+| keyword | 查询 | string | 是 | 非空白，最多 32 个 UTF-16 代码单元；查询前去除首尾空白 |
+| page | 查询 | int | 否 | 1；1–1000000 |
+| pageSize | 查询 | int | 否 | 20；1–100 |
+
+成功 **200**：`UserSearchListResponse`，含 items、page、pageSize、total。每项含 userId（内部标识）、username、nickname、relationship。
+
+relationship：none（可添加）、friends（已是好友）、outgoing（本人已发送待处理申请）、incoming（对方已发送待处理申请，去申请列表处理）。好友状态优先；已拒绝的历史申请不会阻止重新添加。
+
+按用户名、用户 ID 升序稳定分页；使用包含匹配，遵循已有列的排序规则。用户名是 ASCII，非 ASCII 关键词仅匹配昵称，ASCII 关键词匹配两者；百分号等按普通文本处理，不作为通配符。空结果返回 items=[]。total 与 items 分别读取，并发变化可能短暂不一致。
+
+Unity 每页 10 条，内部使用 userId 调用原 POST /api/friends/request，界面只显示昵称、用户名及状态按钮。状态为展示时的快照；发送时仍由原接口检查双方好友关系及待处理申请，在并发或过期结果下返回 409，客户端尝试重新查询。
+
+错误：400 无效关键词或分页；401 无效 JWT 或当前用户不存在。
 
 ### POST /api/friends/request
 
@@ -198,6 +222,43 @@ friendId 是对方的用户 ID，不是 friends 表主键。createdAt 是本次�
 只删除双方关系，不删除申请历史或聊天消息。目标用户存在但关系已不存在时仍返回 204；不能借此删除其他两名用户的好友关系。
 
 错误：400 ID 无效或 `self_friendship`；401 当前用户不存在；404 目标用户不存在。
+
+### GET /api/friends/requests
+
+查询发送给当前用户的待处理好友申请；**JWT：需要**。接收者由 JWT 确定，不接受客户端指定其他接收者。
+
+| 参数 | 位置 | 类型 | 必填 | 默认值 / 范围 |
+| --- | --- | --- | --- | --- |
+| page | 查询 | int | 否 | 1；1–1000000 |
+| pageSize | 查询 | int | 否 | 20；1–100 |
+
+成功：**200**，返回 IncomingFriendRequestListResponse：
+
+```json
+{
+  "items":[
+    {"requestId":10,"senderId":1,"username":"demo_user","nickname":"演示用户","createdAt":"2026-09-23T10:00:00Z"}
+  ],
+  "page":1,
+  "pageSize":20,
+  "total":1
+}
+```
+
+仅包含 receiver_id 为当前用户且 status=Pending 的记录，按申请 id 降序，空列表 items=[]。requestId、senderId 是程序内部标识，Unity 不展示给接收者。用户名和昵称来自申请人的用户记录，不返回密码哈希。total 与 items 分别读取，并发处理时可能短暂不一致。
+
+错误：400 分页参数无效；401 无效身份或当前用户不存在。
+
+### POST /api/friends/reject/{requestId}
+
+拒绝申请；**JWT：需要，且当前用户必须是接收者**。路径 requestId 为正整数 long，无 JSON 正文。
+
+成功：**200**，返回 FriendRequestResponse，status 为 rejected。沿用已有 friend_requests 表，将 status 更新为 2 并记录 handled_at；保留申请历史，不建立好友关系。
+
+错误：400 ID 无效；401 当前用户不存在；403 not_request_receiver；404 request_not_found 或相关用户不存在；409 request_handled。拒绝后再次接受或拒绝返回 409；拒绝后允许发送新的申请。
+
+拒绝和原接受逻辑使用相同的用户行锁顺序，在事务中重新检查状态；并发接受/拒绝只允许一个处理成功。
+
 
 ## 5. MessagesController
 
@@ -356,9 +417,25 @@ senderId 取自 JWT；仅发送申请但尚未接受，不算好友。正文按�
 }
 ```
 
-author 是评论者，不是动态作者。当前没有历史评论列表接口。
+author 是评论者，不是动态作者。历史评论通过下述 GET 接口读取。
 
 错误：400 路径或内容验证失败；401 当前用户不存在；404 `post_not_found`。
+
+### GET /api/posts/{id}/comments
+
+查询指定动态的历史评论；**JWT：需要**，与动态广场相同，所有登录用户可查看，不要求好友关系。
+
+| 参数 | 位置 | 类型 | 必填 | 默认值 / 范围 |
+| --- | --- | --- | --- | --- |
+| id | 路径 | long | 是 | 正整数动态 ID |
+| page | 查询 | int | 否 | 1；1–1000000 |
+| pageSize | 查询 | int | 否 | 20；1–100 |
+
+成功 **200**：`CommentListResponse`，包含 `items: CommentResponse[]`、`page`、`pageSize`、`total`。评论包含作者昵称、用户名、正文和 UTC 创建时间，不返回密码数据。
+
+按 createdAt 降序、id 降序排列；仅查询指定 postId。无评论时 items=[]、total=0。total 和 items 分别查询，并发写入可能短暂不一致。Unity 每页读取 10 条。
+
+错误：400 无效路径或分页参数；401 无效 JWT 或当前用户不存在；404 `post_not_found`。删除动态后不能再查询其评论。
 
 ### POST /api/posts/{id}/like
 
@@ -417,7 +494,11 @@ author 是评论者，不是动态作者。当前没有历史评论列表接口�
 | --- | --- |
 | UserResponse | id: long；username: string；nickname: string |
 | LoginResponse | accessToken: string；tokenType: string；expiresAtUtc: DateTime；user: UserResponse |
-| FriendRequestResponse | requestId: long；senderId: long；receiverId: long；status: string（成功路径 pending / accepted） |
+| UserSearchResponse | userId: long；username: string；nickname: string；relationship: string |
+| UserSearchListResponse | items: UserSearchResponse[]；page: int；pageSize: int；total: int |
+| FriendRequestResponse | requestId: long；senderId: long；receiverId: long；status: string（成功路径 pending / accepted / rejected） |
+| IncomingFriendRequestResponse | requestId: long；senderId: long；username: string；nickname: string；createdAt: DateTime |
+| IncomingFriendRequestListResponse | items: IncomingFriendRequestResponse[]；page: int；pageSize: int；total: int |
 | FriendResponse | friendId: long；username: string；nickname: string；avatarKey: string；createdAt: DateTime |
 | FriendListResponse | items: FriendResponse[]；page: int；pageSize: int；total: int |
 | MessageResponse | id: long；senderId: long；receiverId: long；content: string；createdAt: DateTime |
@@ -425,6 +506,7 @@ author 是评论者，不是动态作者。当前没有历史评论列表接口�
 | PostResponse | id: long；author: PostAuthorResponse；content: string；createdAt: DateTime；commentCount: int；likeCount: int；isLikedByMe: bool |
 | PostListResponse | items: PostResponse[]；page: int；pageSize: int；total: int |
 | CommentResponse | id: long；postId: long；author: PostAuthorResponse；content: string；createdAt: DateTime |
+| CommentListResponse | items: CommentResponse[]；page: int；pageSize: int；total: int |
 | DatabaseCheckResponse | status: string；database: string；tablesChecked: int |
 
 avatarKey 是头像标识字符串，不是上传接口或图片二进制内容。DateTime 在 JSON 中序列化为日期字符串，数字 ID 不以字符串形式返回。
@@ -463,11 +545,11 @@ Controller 业务错误使用 ProblemDetails，并在顶层扩展 code。下例�
 
 ## 10. 在线查看与范围
 
-Development 环境已有 Swagger UI：`http://localhost:5080/swagger`；OpenAPI JSON：`http://localhost:5080/swagger/v1/swagger.json`。它们是中间件文档入口，不计入 16 个 Controller 接口。
+Development 环境已有 Swagger UI：`http://localhost:5080/swagger`；OpenAPI JSON：`http://localhost:5080/swagger/v1/swagger.json`。它们是中间件文档入口，不计入 20 个 Controller 接口。
 
 Swagger 的 Authorize 中只粘贴 accessToken，由界面添加 Bearer 前缀。本文依据源代码生成，没有为收集示例而发起注册、发送消息等写请求。
 
-当前 Controller 中**没有**用户搜索、资料编辑、收到申请列表、拒绝申请、完整会话列表、历史评论查询、单条动态详情、消息删除或刷新令牌接口，不应根据已有表字段推断这些 API 已存在。
+当前 Controller 中**没有**资料编辑、完整会话列表、单条动态详情、消息删除或刷新令牌接口，不应根据已有表字段推断这些 API 已存在。
 
 扫描和核对来源：
 

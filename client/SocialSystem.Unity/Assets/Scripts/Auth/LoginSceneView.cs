@@ -31,7 +31,7 @@ namespace SocialSystem.Client.Auth
             ConfigureInput(owner.passwordInput, "请输入密码", -35);
             owner.passwordInput.contentType = InputField.ContentType.Password;
 
-            Place(owner.loginButton.GetComponent<RectTransform>(), -112, new Vector2(408, 50));
+            Place(owner.loginButton.GetComponent<RectTransform>(), -100, new Vector2(408, 50));
             SocialTheme.Button(owner.loginButton);
             var buttonText = owner.loginButton.GetComponentInChildren<Text>();
             SocialTheme.Text(buttonText, SocialTheme.ButtonSize);
@@ -39,8 +39,16 @@ namespace SocialSystem.Client.Auth
             Place(buttonText.rectTransform, 0, new Vector2(380, 44));
             SocialTheme.Text(owner.statusText, SocialTheme.SmallSize);
             owner.statusText.color = SocialTheme.Muted;
-            Place(owner.statusText.rectTransform, -190, new Vector2(408, 68));
+            Place(owner.statusText.rectTransform, -204, new Vector2(408, 56));
             owner.statusText.text = "欢迎回来，请登录你的账号。";
+        }
+        public static Button AddRegisterEntry(LoginSceneController owner)
+        {
+            var button = SocialUi.Button(owner.usernameInput.transform.parent, "没有账号？注册", owner.ShowRegistration);
+            button.name = "RegisterEntry";
+            Place(button.GetComponent<RectTransform>(), -153, new Vector2(408, 32));
+            button.GetComponent<Image>().color = SocialTheme.InputSurface;
+            return button;
         }
         private static void ConfigureInput(InputField field, string hint, float y)
         {

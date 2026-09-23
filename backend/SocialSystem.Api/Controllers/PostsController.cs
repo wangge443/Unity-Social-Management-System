@@ -37,6 +37,13 @@ public sealed class PostsController(PostService posts) : ControllerBase
     public Task<IActionResult> Delete([Range(1, long.MaxValue)] long id, CancellationToken ct) =>
         Execute(async userId => { await posts.DeleteAsync(userId, id, ct); return NoContent(); });
 
+    [HttpGet("{id:long}/comments")]
+    public Task<IActionResult> Comments([Range(1, long.MaxValue)] long id,
+        [FromQuery, Range(1, 1000000)] int page = 1,
+        [FromQuery, Range(1, 100)] int pageSize = 20, CancellationToken ct = default) =>
+        Execute(async userId => Ok(await posts.CommentsAsync(userId, id, page, pageSize, ct)));
+
+
     [HttpPost("{id:long}/comments")]
     public Task<IActionResult> Comment([Range(1, long.MaxValue)] long id, CreateCommentRequest input, CancellationToken ct) =>
         Execute(async userId => StatusCode(201, await posts.CommentAsync(userId, id, input, ct)));

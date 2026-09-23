@@ -78,6 +78,22 @@ public sealed class PostService(SocialDbContext db)
         return new(comment.Id, id, Author(user), comment.Content, Utc(comment.CreatedAt));
     }
 
+    public async Task<CommentListResponse> CommentsAsync(long userId, long postId, int page, int pageSize, CancellationToken ct)
+    {
+        await CurrentUserAsync(userId, ct);
+        if (!await db.Posts.AnyAsync(x => x.Id == postId, ct))
+            throw new PostOperationException(404, "post_not_found", "动态不存在");
+        var query = db.Comments.AsNoTracking().Where(x => x.PostId == postId);
+        var total = await query.CountAsync(ct);
+        var items = await query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new CommentResponse(x.Id, x.PostId,
+                new PostAuthorResponse(x.User.Id, x.User.Username, x.User.Nickname, x.User.AvatarKey),
+                x.Content, DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc))).ToListAsync(ct);
+        return new(items, page, pageSize, total);
+    }
+
+
     public async Task SetLikeAsync(long userId, long id, bool liked, CancellationToken ct)
     {
         await CurrentUserAsync(userId, ct);

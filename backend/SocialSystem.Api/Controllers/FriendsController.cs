@@ -24,6 +24,13 @@ public sealed class FriendsController(FriendService friends) : ControllerBase
         }
     }
 
+
+    [HttpGet("search-users")]
+    public Task<IActionResult> SearchUsers([FromQuery, Required, StringLength(32)] string keyword,
+        [FromQuery, Range(1, 1000000)] int page = 1,
+        [FromQuery, Range(1, 100)] int pageSize = 20, CancellationToken ct = default) =>
+        Execute(async id => Ok(await friends.SearchUsersAsync(id, keyword, page, pageSize, ct)));
+
     [HttpPost("request")]
     public Task<IActionResult> SendRequest(SendFriendRequest request, CancellationToken ct) =>
         Execute(async id => StatusCode(201, await friends.SendAsync(id, request.ReceiverId, ct)));
@@ -31,6 +38,16 @@ public sealed class FriendsController(FriendService friends) : ControllerBase
     [HttpPost("accept/{requestId:long}")]
     public Task<IActionResult> Accept([Range(1, long.MaxValue)] long requestId, CancellationToken ct) =>
         Execute(async id => Ok(await friends.AcceptAsync(id, requestId, ct)));
+
+    [HttpGet("requests")]
+    public Task<IActionResult> Incoming([FromQuery, Range(1, 1000000)] int page = 1,
+        [FromQuery, Range(1, 100)] int pageSize = 20, CancellationToken ct = default) =>
+        Execute(async id => Ok(await friends.IncomingAsync(id, page, pageSize, ct)));
+
+    [HttpPost("reject/{requestId:long}")]
+    public Task<IActionResult> Reject([Range(1, long.MaxValue)] long requestId, CancellationToken ct) =>
+        Execute(async id => Ok(await friends.RejectAsync(id, requestId, ct)));
+
 
     [HttpDelete("{friendId:long}")]
     public Task<IActionResult> Delete([Range(1, long.MaxValue)] long friendId, CancellationToken ct) =>

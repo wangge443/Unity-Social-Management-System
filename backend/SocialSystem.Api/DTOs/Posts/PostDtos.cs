@@ -16,3 +16,4 @@ public sealed record PostResponse(long Id, PostAuthorResponse Author, string Con
     int CommentCount, int LikeCount, bool IsLikedByMe);
 public sealed record PostListResponse(IReadOnlyList<PostResponse> Items, int Page, int PageSize, int Total);
 public sealed record CommentResponse(long Id, long PostId, PostAuthorResponse Author, string Content, DateTime CreatedAt);
+public sealed record CommentListResponse(IReadOnlyList<CommentResponse> Items, int Page, int PageSize, int Total);

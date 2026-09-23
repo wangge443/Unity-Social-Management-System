@@ -58,6 +58,77 @@ public sealed class ClientConnectionSmokeTest : MonoBehaviour
         ui.loginButton.onClick.Invoke();
         while (ui.IsBusy) yield return null;
         if (ui.LoginVerified || auth.tokenManager.HasToken) { Fail("Wrong-password handling"); yield break; }
+        // Exercise the actual registration UI against the isolated API and MySQL.
+        yield return null;
+        ClientUiCapture.Save(ui.GetComponent<Canvas>(), "register-login");
+        ui.RegisterEntry.onClick.Invoke();
+        var form = ui.Registration;
+        if (!form.IsVisible || ui.usernameInput.transform.parent.gameObject.activeSelf)
+        { Fail("Registration navigation"); yield break; }
+        form.Username.text = "bad name";
+        form.Nickname.text = "注册测试";
+        form.Password.text = password;
+        form.ConfirmPassword.text = password;
+        form.Submit.onClick.Invoke();
+        if (ui.IsBusy || !form.Status.text.Contains("用户名"))
+        { Fail("Registration username validation"); yield break; }
+        form.Username.text = username;
+        form.Nickname.text = " ";
+        form.Submit.onClick.Invoke();
+        if (ui.IsBusy || !form.Status.text.Contains("昵称"))
+        { Fail("Registration nickname validation"); yield break; }
+        form.Nickname.text = "注册测试";
+        form.Password.text = form.ConfirmPassword.text = "short";
+        form.Submit.onClick.Invoke();
+        if (ui.IsBusy || !form.Status.text.Contains("密码"))
+        { Fail("Registration password length"); yield break; }
+        form.Password.text = password;
+        form.ConfirmPassword.text = password + "x";
+        form.Submit.onClick.Invoke();
+        if (ui.IsBusy || !form.Status.text.Contains("不一致"))
+        { Fail("Registration confirmation"); yield break; }
+        form.ConfirmPassword.text = password;
+        form.Submit.onClick.Invoke();
+        while (ui.IsBusy) yield return null;
+        if (!form.IsVisible || !form.Status.text.Contains("已被注册") || auth.tokenManager.HasToken)
+        { Fail("Registration duplicate username"); yield break; }
+        auth.apiClient.baseUrl = "http://127.0.0.1:1";
+        form.Submit.onClick.Invoke();
+        while (ui.IsBusy) yield return null;
+        if (!form.IsVisible || !form.Status.text.Contains("无法确认") || !form.Submit.IsInteractable())
+        { Fail("Registration offline recovery"); yield break; }
+        auth.apiClient.baseUrl = url;
+        form.Back.onClick.Invoke();
+        if (form.IsVisible || !ui.usernameInput.transform.parent.gameObject.activeSelf ||
+            form.Password.text != "" || form.ConfirmPassword.text != "")
+        { Fail("Registration return and password clearing"); yield break; }
+        ui.RegisterEntry.onClick.Invoke();
+        form.Username.text = username + "_r";
+        form.Nickname.text = "注册测试";
+        form.Password.text = form.ConfirmPassword.text = password;
+        ClientUiCapture.Save(ui.GetComponent<Canvas>(), "register-form");
+        if (form.Password.contentType != UnityEngine.UI.InputField.ContentType.Password ||
+            form.ConfirmPassword.contentType != UnityEngine.UI.InputField.ContentType.Password)
+        { Fail("Registration password masks"); yield break; }
+        form.Submit.onClick.Invoke();
+        if (!ui.IsBusy || form.Submit.IsInteractable() || form.Back.IsInteractable() || ui.RegisterEntry.interactable)
+        { Fail("Registration duplicate-submit guard"); yield break; }
+        while (ui.IsBusy) yield return null;
+        if (!ui.LoginVerified || !auth.tokenManager.HasToken || !ui.App.IsOpen || form.IsVisible ||
+            auth.CurrentUser.username != username + "_r" || auth.CurrentUser.nickname != "注册测试" ||
+            auth.CurrentUser.id == registration.Data.id || form.Password.text != "" || form.ConfirmPassword.text != "")
+        { Fail("Registration automatic login, me verification and HomeView"); yield break; }
+        ClientUiCapture.Save(ui.GetComponent<Canvas>(), "register-home");
+        ui.App.Logout();
+        yield return null;
+        ui.usernameInput.text = username + "_r";
+        ui.passwordInput.text = password;
+        ui.loginButton.onClick.Invoke();
+        while (ui.IsBusy) yield return null;
+        if (!ui.LoginVerified || !ui.App.IsOpen || auth.CurrentUser.username != username + "_r")
+        { Fail("Registered account subsequent normal login"); yield break; }
+        Debug.Log("PASS: Unity registration UI validation, duplicate username, offline recovery, navigation, automatic JWT login, me verification, HomeView and subsequent login.");
+
         finished = true;
         Debug.Log("PASS: Unity registration, LoginScene login, automatic Bearer GET, DELETE, logout and invalid-password handling.");
         EditorApplication.Exit(0);

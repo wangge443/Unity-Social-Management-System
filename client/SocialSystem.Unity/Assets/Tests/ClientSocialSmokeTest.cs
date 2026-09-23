@@ -73,6 +73,21 @@ public sealed class ClientSocialSmokeTest : MonoBehaviour
         if (button == null) { Fail("Missing named button: " + name); return; }
         button.onClick.Invoke();
     }
+    private void CheckPostLayout()
+    {
+        var rects = app.GetComponentsInChildren<RectTransform>();
+        var compose = rects.First(x => x.name == "ComposePost");
+        var postPage = rects.First(x => x.name == "Posts");
+        var feed = app.GetComponentsInChildren<ScrollRect>().First(x => x.name == "PostFeed");
+        if (!Check(compose.rect.height <= 54 && feed.GetComponent<RectTransform>().rect.height >= postPage.rect.height * 0.60f,
+            "Compact composer leaves most height for post feed")) return;
+        foreach (var scroll in app.GetComponentsInChildren<SocialSystem.Client.Posts.PostCommentsScrollRect>())
+            if (!Check(scroll.GetComponent<RectTransform>().rect.height <= 151, "Bounded comment viewport")) return;
+        foreach (var text in app.GetComponentsInChildren<Text>().Where(x => x.name.StartsWith("PostBody_") || x.name.StartsWith("CommentBody_")))
+            if (!Check(!text.supportRichText && text.horizontalOverflow == HorizontalWrapMode.Wrap &&
+                text.rectTransform.rect.height + 2 >= text.preferredHeight, "Wrapped post/comment text has sufficient height")) return;
+    }
+
     private IEnumerator Start()
     {
         StartCoroutine(Timeout());
@@ -119,37 +134,80 @@ public sealed class ClientSocialSmokeTest : MonoBehaviour
         app.Friends.Open();
         yield return Idle();
         if (!Check(app.Friends.Items.Length == 0, "Empty friend list")) yield break;
-        Click("好友申请");
-        app.Friends.ReceiverInput.text = a.ToString();
-        Click("发送好友申请");
-        if (!Check(!app.IsBusy && app.Status.Contains("自己"), "Self request validation")) yield break;
-        app.Friends.ReceiverInput.text = b.ToString();
-        Click("发送好友申请");
+
+        Click("添加好友");
+        Click("搜索");
+        if (!Check(!app.IsBusy && app.Status.Contains("请输入"), "Blank search validation")) yield break;
+        app.Friends.SearchInput.text = username;
+        Click("搜索");
+        yield return Idle();
+        if (!Check(app.Friends.SearchItems.Length == 1 && app.Friends.SearchItems[0].userId == b &&
+            !app.Friends.SearchItems.Any(x => x.userId == a), "Search username excludes self")) yield break;
+        app.Friends.SearchInput.text = "乙同学";
+        Click("搜索");
+        yield return Idle();
+        if (!Check(app.Friends.SearchItems.Any(x => x.userId == b && x.nickname == "乙同学"), "Search nickname")) yield break;
+        if (!Check(!app.GetComponentsInChildren<InputField>(true).Any(x => (x.placeholder as Text)?.text == "对方用户 ID"),
+            "Manual receiver ID field removed")) yield break;
+        ClientUiCapture.Save(ui.GetComponent<Canvas>(), "user-search");
+        ClickNamed("AddFriend_" + b);
         yield return Idle();
         var requestId = app.Friends.LastRequestId;
-        if (!Check(requestId > 0, "Friend request")) yield break;
-        Click("发送好友申请");
-        yield return Idle();
-        if (!Check(app.Status.Contains("待处理"), "Duplicate friend request")) yield break;
-        app.Friends.OpenRequests();
-        app.Friends.RequestInput.text = requestId.ToString();
-        Click("接受申请");
-        yield return Idle();
-        if (!Check(app.Status.Contains("接收者"), "Sender cannot accept")) yield break;
+        if (!Check(requestId > 0 && !app.Status.Contains("ID"), "Request sent without exposing ID")) yield break;
+        var addButton = app.GetComponentsInChildren<Button>().First(x => x.name == "AddFriend_" + b);
+        if (!Check(!addButton.interactable && addButton.GetComponentInChildren<Text>().text == "已申请",
+            "Pending request disables duplicate adding")) yield break;
+        addButton.onClick.Invoke();
+        if (!Check(!app.IsBusy, "Duplicate click is ignored")) yield break;
+        var friendApi = new SocialSystem.Client.Friends.FriendApi(auth.apiClient);
+        ApiResponse<SocialSystem.Client.Friends.FriendRequestDto> duplicate = null;
+        yield return friendApi.Request(b, r => duplicate = r);
+        if (!Check(duplicate != null && duplicate.StatusCode == 409, "Server rejects duplicate request")) yield break;
+
+        ApiResponse<SocialSystem.Client.Friends.FriendRequestDto> forbidden = null;
+        yield return friendApi.Accept(requestId, r => forbidden = r);
+        if (!Check(forbidden != null && forbidden.StatusCode == 403, "Sender cannot accept")) yield break;
         app.Logout();
         if (!Check(!app.IsOpen && !auth.tokenManager.HasToken && auth.CurrentUser == null, "Logout clears session")) yield break;
         yield return Login(username + "b");
         app.Friends.Open();
         yield return Idle();
-        app.Friends.OpenRequests();
-        app.Friends.RequestInput.text = requestId.ToString();
-        Click("接受申请");
+        if (!Check(app.Friends.IncomingItems.Length == 1 && app.Friends.IncomingItems[0].requestId == requestId &&
+            app.Friends.IncomingItems[0].username == username && app.Friends.IncomingItems[0].nickname == first.Data.nickname,
+            "Opening friend page automatically shows recipient requests and sender identity")) yield break;
+        var requestLabel = app.GetComponentsInChildren<Text>().First(x => x.name == "RequestIdentity_" + requestId);
+        if (!Check(!requestLabel.supportRichText && requestLabel.text == first.Data.nickname + "\n用户名：" + username &&
+            !app.GetComponentsInChildren<InputField>(true).Any(x => (x.placeholder as Text)?.text == "收到的申请 ID"),
+            "Sender display is literal text and request ID input is removed")) yield break;
+        app.Friends.OpenSearch();
+        app.Friends.SearchInput.text = username;
+        Click("搜索");
         yield return Idle();
-        if (!Check(app.Friends.Items.Length == 1 && app.Friends.Items[0].friendId == a, "Accept / list")) yield break;
+        if (!Check(app.Friends.SearchItems.Single(x => x.userId == a).relationship == "incoming",
+            "Reverse pending request is visible without allowing duplicate")) yield break;
+        app.Friends.Open();
+        yield return Idle();
+        ClientUiCapture.Save(ui.GetComponent<Canvas>(), "incoming-requests");
+        ClickNamed("AcceptRequest_" + requestId);
+        yield return Idle();
+        if (!Check(app.Friends.IncomingItems.Length == 0 && app.Friends.Items.Length == 1 &&
+            app.Friends.Items[0].friendId == a, "Accept refreshes requests and friend list")) yield break;
+        app.Friends.OpenSearch();
+        app.Friends.SearchInput.text = username;
+        Click("搜索");
+        yield return Idle();
+        var friendResult = app.GetComponentsInChildren<Button>().First(x => x.name == "AddFriend_" + a);
+        if (!Check(!friendResult.interactable && friendResult.GetComponentInChildren<Text>().text == "已是好友",
+            "Existing friendship disables add button")) yield break;
+        app.Friends.SearchInput.text = "no_match_" + Guid.NewGuid().ToString("N").Substring(0, 12);
+        Click("搜索");
+        yield return Idle();
+        if (!Check(app.Friends.SearchItems.Length == 0 && app.GetComponentsInChildren<Text>().Any(x => x.text.Contains("未找到")),
+            "Empty search clears previous results")) yield break;
         Debug.Log("PASS: Social friend requests, conflict, receiver authorization and list.");
 
         if (!Check(app.Chat.RecentCount == 0, "Recent contacts account isolation")) yield break;
-        Click("返回好友列表");
+        app.Friends.Open();
         yield return Idle();
         Canvas.ForceUpdateCanvases();
         var friendIdentity = app.GetComponentsInChildren<Button>().First(x => x.name == "FriendIdentity_" + a);
@@ -206,6 +264,13 @@ public sealed class ClientSocialSmokeTest : MonoBehaviour
         yield return Idle();
         var postId = app.Posts.LastPublishedId;
         if (!Check(postId > 0 && app.Posts.Items.Length == 1, "Publish / list")) yield break;
+        ClickNamed("ToggleComments_" + postId);
+        yield return Idle();
+        if (!Check(app.Posts.CommentsExpanded(postId) && app.Posts.CommentItems(postId).Length == 0 &&
+            app.GetComponentsInChildren<Text>().Any(x => x.text == "暂无评论"), "Empty expanded comments")) yield break;
+        ClickNamed("ToggleComments_" + postId);
+        if (!Check(!app.Posts.CommentsExpanded(postId), "Collapse empty comments")) yield break;
+
         app.Posts.ToggleLike(app.Posts.Items[0]);
         yield return Idle();
         if (!Check(app.Posts.Items[0].isLikedByMe && app.Posts.Items[0].likeCount == 1, "Like")) yield break;
@@ -224,6 +289,15 @@ public sealed class ClientSocialSmokeTest : MonoBehaviour
                 button.GetComponentInChildren<Text>()?.text == "删除动态"), "Other author delete hidden")) yield break;
         app.Posts.Comment(postId, "乙的评论");
         yield return Idle();
+        if (!Check(app.Posts.CommentsExpanded(postId) && app.Posts.CommentItems(postId).Any(x =>
+            x.author.id == b && x.content == "乙的评论"), "Submitting automatically refreshes own comment and count")) yield break;
+        ClickNamed("ToggleComments_" + postId);
+        if (!Check(!app.Posts.CommentsExpanded(postId), "Collapse comments")) yield break;
+        ClickNamed("ToggleComments_" + postId);
+        yield return Idle();
+        if (!Check(app.Posts.CommentItems(postId).Any(x => x.author.username == username + "b" && x.content == "乙的评论"),
+            "B expands and reads stored comment")) yield break;
+
         app.Posts.ToggleLike(app.Posts.Items[0]);
         yield return Idle();
         app.Logout();
@@ -232,6 +306,62 @@ public sealed class ClientSocialSmokeTest : MonoBehaviour
         yield return Idle();
         if (!Check(app.Posts.Items[0].likeCount == 1 && !app.Posts.Items[0].isLikedByMe &&
             app.Posts.Items[0].commentCount == 2, "Cross-user counts / own like state")) yield break;
+        ClickNamed("ToggleComments_" + postId);
+        yield return Idle();
+        if (!Check(app.Posts.CommentItems(postId).Any(x => x.author.id == b && x.content == "乙的评论"),
+            "A reads B comment after account switch")) yield break;
+        var postApi = new SocialSystem.Client.Posts.PostApi(auth.apiClient);
+        for (var i = 0; i < 9; i++)
+        {
+            ApiResponse<SocialSystem.Client.Posts.CommentDto> extraComment = null;
+            yield return postApi.Comment(postId, "多条评论 " + i + "：" + new string('评', 80) + "\n<b>纯文本</b>", r => extraComment = r);
+            if (!Check(extraComment != null && extraComment.Success, "Multiple comments setup")) yield break;
+        }
+        app.Posts.Refresh(1);
+        yield return Idle();
+        if (!Check(app.Posts.Items[0].commentCount == 11 && app.Posts.CommentItems(postId).Length == 10,
+            "Comment count and first page")) yield break;
+        ClickNamed("CommentNext_" + postId);
+        yield return Idle();
+        if (!Check(app.Posts.CommentItems(postId).Length == 1 && app.Posts.CommentItems(postId)[0].content == "第一条评论",
+            "Comment pagination to oldest page")) yield break;
+        ClickNamed("CommentPrevious_" + postId);
+        yield return Idle();
+        ApiResponse<SocialSystem.Client.Posts.PostDto> extraPost = null;
+        yield return postApi.Publish("第二张卡片，用于验证动态列表滚动。\n" + new string('文', 160), r => extraPost = r);
+        if (!Check(extraPost != null && extraPost.Success, "Feed scrolling fixture")) yield break;
+        app.Posts.Refresh(1);
+        yield return Idle();
+        ClientUiCapture.SavePosts(ui.GetComponent<Canvas>(), "posts-comments", CheckPostLayout);
+        var feedScroll = app.GetComponentsInChildren<ScrollRect>().First(x => x.name == "PostFeed");
+        var commentScroll = app.GetComponentsInChildren<SocialSystem.Client.Posts.PostCommentsScrollRect>().Single();
+        if (!Check(feedScroll.content.rect.height > feedScroll.viewport.rect.height &&
+            commentScroll.content.rect.height > commentScroll.viewport.rect.height, "Independent scroll ranges")) yield break;
+        feedScroll.verticalNormalizedPosition = 1;
+        commentScroll.verticalNormalizedPosition = 0;
+        commentScroll.OnScroll(new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
+            { scrollDelta = new Vector2(0, -1) });
+        if (!Check(feedScroll.verticalNormalizedPosition < 1, "Comment boundary wheel scrolls outer feed")) yield break;
+        feedScroll.verticalNormalizedPosition = 0;
+        commentScroll.verticalNormalizedPosition = 1;
+        ClientUiCapture.SavePosts(ui.GetComponent<Canvas>(), "posts-scrolled", CheckPostLayout);
+        // Fail only the comment request, then restore and retry by reopening.
+        ClickNamed("ToggleComments_" + postId);
+        auth.apiClient.baseUrl = "http://127.0.0.1:1";
+        ClickNamed("ToggleComments_" + postId);
+        yield return Idle();
+        if (!Check(app.Status.Contains("加载失败") && app.IsOpen && !app.IsBusy, "Comment load failure is recoverable")) yield break;
+        auth.apiClient.baseUrl = url;
+        Click("重试");
+        yield return Idle();
+        if (!Check(app.Posts.CommentItems(postId).Length == 10, "Comment retry")) yield break;
+        ApiResponse<string> removeExtra = null;
+        yield return postApi.Delete(extraPost.Data.id, r => removeExtra = r);
+        if (!Check(removeExtra != null && removeExtra.Success, "Remove feed fixture")) yield break;
+        app.Posts.Refresh(1);
+        yield return Idle();
+        Debug.Log("PASS: Social stored comments cross-user, auto-refresh, empty state, expansion, pagination, nested scroll and three-resolution post layout.");
+
         Click("删除动态");
         if (!Check(!app.IsBusy && app.Posts.Items.Length == 1, "Delete confirmation")) yield break;
         Click("确认删除");
@@ -304,6 +434,63 @@ public sealed class ClientSocialSmokeTest : MonoBehaviour
         yield return Login(username);
         app.Logout();
         Debug.Log("PASS: Social logout, relogin, network failure, recovery, 401, expiry and wrong password.");
+
+        Debug.Log("PASS: Social user search, nickname matching, hidden IDs, pending states and search-to-chat lifecycle.");
+        // Another pair tests rejection, multiple incoming rows and absence of friendship.
+        ApiResponse<UserResponse> third = null, fourth = null;
+        yield return auth.Register(username + "c", password, "丙同学", r => third = r);
+        yield return auth.Register(username + "d", password, "丁同学", r => fourth = r);
+        if (!Check(third != null && third.Success && fourth != null && fourth.Success, "Rejection accounts")) yield break;
+        yield return Login(username + "c");
+        app.Friends.OpenSearch();
+        app.Friends.SearchInput.text = username + "d";
+        Click("搜索");
+        yield return Idle();
+        ClickNamed("AddFriend_" + fourth.Data.id);
+        yield return Idle();
+        var rejectId = app.Friends.LastRequestId;
+        app.Logout();
+        yield return Login(username);
+        app.Friends.OpenSearch();
+        app.Friends.SearchInput.text = username + "d";
+        Click("搜索");
+        yield return Idle();
+        ClickNamed("AddFriend_" + fourth.Data.id);
+        yield return Idle();
+        var anotherId = app.Friends.LastRequestId;
+        app.Logout();
+        yield return Login(username + "d");
+        app.Friends.Open();
+        yield return Idle();
+        if (!Check(app.Friends.IncomingItems.Length == 2 && app.Friends.Items.Length == 0,
+            "Multiple incoming requests automatically visible")) yield break;
+        Canvas.ForceUpdateCanvases();
+        if (!Check(app.GetComponentsInChildren<Button>().Count(x => x.name.StartsWith("RejectRequest_")) == 2,
+            "Each incoming request has its own action")) yield break;
+        ClientUiCapture.Save(ui.GetComponent<Canvas>(), "incoming-multiple");
+        var incomingScroll = app.GetComponentsInChildren<ScrollRect>().Single();
+        if (!Check(incomingScroll.content.rect.height > incomingScroll.viewport.rect.height, "Multiple requests can scroll")) yield break;
+        incomingScroll.verticalNormalizedPosition = 0;
+        ClientUiCapture.Save(ui.GetComponent<Canvas>(), "incoming-multiple-bottom");
+        ClickNamed("RejectRequest_" + rejectId);
+        yield return Idle();
+        if (!Check(app.Friends.IncomingItems.Length == 1 && app.Friends.IncomingItems[0].requestId == anotherId &&
+            app.Friends.Items.Length == 0, "Reject removes only chosen request without friendship")) yield break;
+        // A stale action (another device already handled it) refreshes without adding a friend.
+        app.Friends.HandleRequest(rejectId, true);
+        yield return Idle();
+        if (!Check(app.Status.Contains("已处理") && !app.Status.Contains("ID") && app.Friends.IncomingItems.Length == 1, "Stale request recovery")) yield break;
+        ClickNamed("RejectRequest_" + anotherId);
+        yield return Idle();
+        if (!Check(app.Friends.IncomingItems.Length == 0 && app.Friends.Items.Length == 0, "Reject final row / empty state")) yield break;
+        app.Logout();
+        yield return Login(username + "c");
+        app.Friends.Open();
+        yield return Idle();
+        if (!Check(app.Friends.Items.Length == 0, "Rejected sender has no friendship")) yield break;
+        app.Logout();
+        Debug.Log("PASS: Social received-request identity, automatic accept refresh, multiple rows, rejection, stale actions and empty state.");
+
         finished = true;
         Debug.Log("PASS: Unity social modules end-to-end through isolated HTTP API and MySQL.");
         ClearContactMetadata();
